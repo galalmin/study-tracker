@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스마트 공부 달성률 트래커</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #eef2ff;
+            --border-color: #e2e8f0;
+            --box-bg: #f1f5f9;
+            --box-active: #4f46e5;
+            --box-active-text: #ffffff;
+            --accent-green: #10b981;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            --radius: 16px;
+        }
+
+        .dark-mode {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --primary: #6366f1;
+            --primary-hover: #818cf8;
+            --primary-light: #1e1b4b;
+            --border-color: #334155;
+            --box-bg: #334155;
+            --box-active: #6366f1;
+            --box-active-text: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 1.5rem 1rem;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .title-area h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .title-area p {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            margin-top: 0.25rem;
+        }
+
+        .theme-toggle {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 0.8rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--text-main);
+            box-shadow: var(--shadow);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .dashboard-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.75rem;
+        }
+
+        .dashboard-title {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .dashboard-percentage {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 12px;
+            background-color: var(--box-bg);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #818cf8);
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .dashboard-stats {
+            display: flex;
+            gap: 1.25rem;
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+        }
+
+        .dashboard-stats span strong {
+            color: var(--text-main);
+        }
+
+        .pomo-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .pomo-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-sub);
+            margin-bottom: 0.4rem;
+        }
+
+        .pomo-timer {
+            font-size: 2.2rem;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-main);
+            margin: 0.1rem 0;
+            letter-spacing: -0.03em;
+        }
+
+        .pomo-mode-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            background: var(--primary-light);
+            color: var(--primary);
+            margin-bottom: 0.6rem;
+        }
+
+        .pomo-controls {
+            display: flex;
+            gap: 0.4rem;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-pomo {
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-main);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-pomo-primary {
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+        }
+
+        .form-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1.2fr auto;
+            gap: 0.75rem;
+            align-items: flex-end;
+        }
+
+        @media (max-width: 680px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .input-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-sub);
+        }
+
+        .input-group input {
+            padding: 0.65rem 0.85rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-main);
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .btn-add {
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+            padding: 0.65rem 1.2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            height: 42px;
+            white-space: nowrap;
+        }
+
+        .subject-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .subject-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .subject-card.complete {
+            border-color: var(--accent-green);
+        }
+
+        .subject-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .subject-info h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .complete-badge {
+            font-size: 0.7rem;
+            background: #d1fae5;
+            color: #065f46;
+            padding: 0.1rem 0.4rem;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+
+        .subject-meta {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .d-day-tag {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 0.1rem 0.4rem;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+
+        .subject-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .subject-percentage {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .subject-percentage.complete {
+            color: var(--accent-green);
+        }
+
+        .btn-delete {
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0.2rem 0.4rem;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            gap: 6px;
+            margin-top: 1rem;
+        }
+
+        .part-box {
+            aspect-ratio: 1;
+            background-color: var(--box-bg);
+            color: var(--text-sub);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            user-select: none;
+            border: 1px solid transparent;
+            transition: all 0.15s ease;
+        }
+
+        .part-box.active {
+            background-color: var(--box-active);
+            color: var(--box-active-text);
+            border-color: var(--box-active);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2.5rem;
+            color: var(--text-sub);
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px dashed var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="title-area">
+                <h1>📚 스마트 공부 달성률 트래커</h1>
+                <p>번호 클릭 시 이전 번호까지 자동 선택</p>
+            </div>
+            <button class="theme-toggle" id="themeToggleBtn">🌙 다크 모드</button>
+        </header>
+
+        <div class="dashboard-grid">
+            <section class="dashboard-card">
+                <div class="dashboard-header">
+                    <span class="dashboard-title">전체 공부 달성률</span>
+                    <span class="dashboard-percentage" id="totalPercent">0%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="totalProgressBar"></div>
+                </div>
+                <div class="dashboard-stats">
+                    <span>과목: <strong id="subjectCount">0</strong>개</span>
+                    <span>완료: <strong id="completedPartsCount">0</strong> / <strong id="totalPartsCount">0</strong></span>
+                </div>
+            </section>
+
+            <section class="pomo-card">
+                <div class="pomo-title">⏱️ 뽀모도로 타이머</div>
+                <span class="pomo-mode-badge" id="pomoModeBadge">🔥 집중 시간 (25분)</span>
+                <div class="pomo-timer" id="pomoDisplay">25:00</div>
+                <div class="pomo-controls">
+                    <button class="btn-pomo btn-pomo-primary" id="pomoStartBtn">시작</button>
+                    <button class="btn-pomo" id="pomoResetBtn">리셋</button>
+                    <button class="btn-pomo" id="pomoModeBtn">쉬는시간</button>
+                </div>
+            </section>
+        </div>
+
+        <section class="form-card">
+            <form id="addSubjectForm" class="form-grid">
+                <div class="input-group">
+                    <label for="subjectName">과목명</label>
+                    <input type="text" id="subjectName" placeholder="예: 국어, 한국사" required>
+                </div>
+                <div class="input-group">
+                    <label for="totalParts">총 파트 수</label>
+                    <input type="number" id="totalParts" min="1" max="100" placeholder="20" required>
+                </div>
+                <div class="input-group">
+                    <label for="targetDate">목표일 (선택)</label>
+                    <input type="date" id="targetDate">
+                </div>
+                <button type="submit" class="btn-add">+ 과목 추가</button>
+            </form>
+        </section>
+
+        <main class="subject-list" id="subjectList"></main>
+    </div>
+
+    <script>
+        const defaultSubjects = [
+            { id: '1', name: '한국사 기출 회독', totalParts: 20, completedRange: 8, targetDate: '' },
+            { id: '2', name: '행정법총론 기본서', totalParts: 15, completedRange: 5, targetDate: '' }
+        ];
+
+        let subjects = JSON.parse(localStorage.getItem('study_tracker_subjects')) || defaultSubjects;
+
+        const themeBtn = document.getElementById('themeToggleBtn');
+        let isDarkMode = localStorage.getItem('study_tracker_theme') === 'dark';
+
+        function applyTheme() {
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+                themeBtn.textContent = '☀️ 라이트 모드';
+            } else {
+                document.body.classList.remove('dark-mode');
+                themeBtn.textContent = '🌙 다크 모드';
+            }
+        }
+        
+        themeBtn.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            localStorage.setItem('study_tracker_theme', isDarkMode ? 'dark' : 'light');
+            applyTheme();
+        });
+
+        function triggerConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+        }
+
+        let pomoTime = 25 * 60;
+        let pomoTimerId = null;
+        let isWorkMode = true;
+
+        const pomoDisplay = document.getElementById('pomoDisplay');
+        const pomoStartBtn = document.getElementById('pomoStartBtn');
+        const pomoResetBtn = document.getElementById('pomoResetBtn');
+        const pomoModeBtn = document.getElementById('pomoModeBtn');
+        const pomoModeBadge = document.getElementById('pomoModeBadge');
+
+        function updatePomoDisplay() {
+            const mins = Math.floor(pomoTime / 60);
+            const secs = pomoTime % 60;
+            pomoDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        pomoStartBtn.addEventListener('click', () => {
+            if (pomoTimerId) {
+                clearInterval(pomoTimerId);
+                pomoTimerId = null;
+                pomoStartBtn.textContent = '시작';
+            } else {
+                pomoStartBtn.textContent = '일시정지';
+                pomoTimerId = setInterval(() => {
+                    if (pomoTime > 0) {
+                        pomoTime--;
+                        updatePomoDisplay();
+                    } else {
+                        clearInterval(pomoTimerId);
+                        pomoTimerId = null;
+                        pomoStartBtn.textContent = '시작';
+                        triggerConfetti();
+                        alert(isWorkMode ? '🎉 집중 시간이 끝났습니다! 5분간 휴식하세요.' : '🔔 휴식 시간이 끝났습니다!');
+                        togglePomoMode();
+                    }
+                }, 1000);
+            }
+        });
+
+        pomoResetBtn.addEventListener('click', () => {
+            if (pomoTimerId) {
+                clearInterval(pomoTimerId);
+                pomoTimerId = null;
+                pomoStartBtn.textContent = '시작';
+            }
+            pomoTime = isWorkMode ? 25 * 60 : 5 * 60;
+            updatePomoDisplay();
+        });
+
+        function togglePomoMode() {
+            isWorkMode = !isWorkMode;
+            if (isWorkMode) {
+                pomoTime = 25 * 60;
+                pomoModeBadge.textContent = '🔥 집중 시간 (25분)';
+                pomoModeBtn.textContent = '쉬는시간';
+            } else {
+                pomoTime = 5 * 60;
+                pomoModeBadge.textContent = '☕ 휴식 시간 (5분)';
+                pomoModeBtn.textContent = '집중시간';
+            }
+            updatePomoDisplay();
+        }
+
+        pomoModeBtn.addEventListener('click', () => {
+            if (pomoTimerId) {
+                clearInterval(pomoTimerId);
+                pomoTimerId = null;
+                pomoStartBtn.textContent = '시작';
+            }
+            togglePomoMode();
+        });
+
+        function getDDayString(targetDateStr) {
+            if (!targetDateStr) return '';
+            const target = new Date(targetDateStr);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            target.setHours(0, 0, 0, 0);
+
+            const diffTime = target - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays > 0) return `D-${diffDays}`;
+            if (diffDays === 0) return `D-Day!`;
+            return `D+${Math.abs(diffDays)}`;
+        }
+
+        function saveData() {
+            localStorage.setItem('study_tracker_subjects', JSON.stringify(subjects));
+            render();
+        }
+
+        document.getElementById('addSubjectForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nameInput = document.getElementById('subjectName');
+            const partsInput = document.getElementById('totalParts');
+            const dateInput = document.getElementById('targetDate');
+
+            const newSubject = {
+                id: Date.now().toString(),
+                name: nameInput.value.trim(),
+                totalParts: parseInt(partsInput.value, 10),
+                completedRange: 0,
+                targetDate: dateInput.value
+            };
+
+            subjects.push(newSubject);
+            saveData();
+
+            nameInput.value = '';
+            partsInput.value = '';
+            dateInput.value = '';
+        });
+
+        function deleteSubject(id) {
+            if (confirm('이 과목을 삭제하시겠습니까?')) {
+                subjects = subjects.filter(s => s.id !== id);
+                saveData();
+            }
+        }
+
+        function handlePartClick(subjectId, clickedIndex) {
+            const subject = subjects.find(s => s.id === subjectId);
+            if (!subject) return;
+
+            const wasComplete = subject.completedRange === subject.totalParts;
+
+            if (subject.completedRange === clickedIndex) {
+                subject.completedRange = clickedIndex - 1;
+            } else {
+                subject.completedRange = clickedIndex;
+            }
+
+            if (!wasComplete && subject.completedRange === subject.totalParts) {
+                triggerConfetti();
+            }
+
+            saveData();
+        }
+
+        function render() {
+            const listEl = document.getElementById('subjectList');
+            listEl.innerHTML = '';
+
+            let grandTotalParts = 0;
+            let grandCompletedParts = 0;
+
+            if (subjects.length === 0) {
+                listEl.innerHTML = `
+                    <div class="empty-state">
+                        <p>등록된 과목이 없습니다. 새로운 과목을 추가해 보세요!</p>
+                    </div>
+                `;
+            } else {
+                subjects.forEach(subject => {
+                    grandTotalParts += subject.totalParts;
+                    grandCompletedParts += subject.completedRange;
+
+                    const percent = subject.totalParts > 0 
+                        ? Math.round((subject.completedRange / subject.totalParts) * 100) 
+                        : 0;
+
+                    const isComplete = percent === 100;
+
+                    const card = document.createElement('div');
+                    card.className = `subject-card ${isComplete ? 'complete' : ''}`;
+
+                    const dDayStr = getDDayString(subject.targetDate);
+
+                    card.innerHTML = `
+                        <div class="subject-header">
+                            <div class="subject-info">
+                                <h3>
+                                    ${escapeHtml(subject.name)}
+                                    ${isComplete ? '<span class="complete-badge">🎉 완강!</span>' : ''}
+                                </h3>
+                                <div class="subject-meta">
+                                    <span>달성률: ${subject.completedRange} / ${subject.totalParts}</span>
+                                    ${subject.targetDate ? `<span>• 목표: ${subject.targetDate}</span>` : ''}
+                                    ${dDayStr ? `<span class="d-day-tag">${dDayStr}</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="subject-actions">
+                                <span class="subject-percentage ${isComplete ? 'complete' : ''}">${percent}%</span>
+                                <button class="btn-delete" onclick="deleteSubject('${subject.id}')">삭제</button>
+                            </div>
+                        </div>
+                        <div class="progress-bar-bg" style="height: 8px; margin-bottom: 0.8rem;">
+                            <div class="progress-bar-fill" style="width: ${percent}%; ${isComplete ? 'background: #10b981;' : ''}"></div>
+                        </div>
+                        <div class="grid-container">
+                            ${Array.from({ length: subject.totalParts }, (_, i) => {
+                                const partNum = i + 1;
+                                const isActive = partNum <= subject.completedRange;
+                                return `
+                                    <div class="part-box ${isActive ? 'active' : ''}" 
+                                         onclick="handlePartClick('${subject.id}', ${partNum})">
+                                        ${partNum}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+
+                    listEl.appendChild(card);
+                });
+            }
+
+            const overallPercent = grandTotalParts > 0 
+                ? Math.round((grandCompletedParts / grandTotalParts) * 100) 
+                : 0;
+
+            document.getElementById('totalPercent').textContent = `${overallPercent}%`;
+            document.getElementById('totalProgressBar').style.width = `${overallPercent}%`;
+            document.getElementById('subjectCount').textContent = subjects.length;
+            document.getElementById('completedPartsCount').textContent = grandCompletedParts;
+            document.getElementById('totalPartsCount').textContent = grandTotalParts;
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, function(m) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+            });
+        }
+
+        applyTheme();
+        updatePomoDisplay();
+        render();
+    </script>
+</body>
+</html>
