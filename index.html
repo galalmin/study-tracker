@@ -248,14 +248,39 @@
             margin-bottom: 0.75rem;
         }
 
+        .subject-title-row {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
         .subject-info h3 {
             font-size: 1.1rem;
             font-weight: 700;
-            margin-bottom: 0.2rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex-wrap: wrap;
+        }
+
+        /* 은은한 설명란 스타일 */
+        .subject-desc {
+            font-size: 0.82rem;
+            color: var(--text-sub);
+            font-weight: 500;
+            opacity: 0.85;
+            margin-left: 0.2rem;
+        }
+
+        .btn-edit-title {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            opacity: 0.6;
+            padding: 0.1rem 0.2rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn-edit-title:hover {
+            opacity: 1;
         }
 
         .round-control {
@@ -301,6 +326,7 @@
             gap: 0.5rem;
             align-items: center;
             flex-wrap: wrap;
+            margin-top: 0.2rem;
         }
 
         .d-day-tag {
@@ -315,7 +341,35 @@
         .subject-actions {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.5rem;
+        }
+
+        /* 순서 이동 버튼 스타일 */
+        .btn-order-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            margin-right: 0.2rem;
+        }
+
+        .btn-order {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-sub);
+            font-size: 0.65rem;
+            width: 22px;
+            height: 18px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            line-height: 1;
+        }
+
+        .btn-order:hover {
+            background: var(--border-color);
+            color: var(--text-main);
         }
 
         .subject-percentage {
@@ -404,12 +458,12 @@
 
         .form-grid {
             display: grid;
-            grid-template-columns: 2fr 1fr 1.2fr auto;
+            grid-template-columns: 1.5fr 1.5fr 0.8fr 1.2fr auto;
             gap: 0.75rem;
             align-items: flex-end;
         }
 
-        @media (max-width: 680px) {
+        @media (max-width: 768px) {
             .form-grid {
                 grid-template-columns: 1fr;
             }
@@ -506,7 +560,11 @@
             <form id="addSubjectForm" class="form-grid">
                 <div class="input-group">
                     <label for="subjectName">과목명</label>
-                    <input type="text" id="subjectName" placeholder="예: 국어, 한국사" required>
+                    <input type="text" id="subjectName" placeholder="예: 한국사" required>
+                </div>
+                <div class="input-group">
+                    <label for="subjectDesc">설명 (선택)</label>
+                    <input type="text" id="subjectDesc" placeholder="예: 단권화 교재 기준">
                 </div>
                 <div class="input-group">
                     <label for="totalParts">총 파트 수</label>
@@ -536,12 +594,12 @@
         const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
 
         const defaultSubjects = [
-            { id: '1', name: '한국사 기출 회독', round: 1, totalParts: 20, completedMap: {}, targetDate: '2026-06-13' },
-            { id: '2', name: '행정법총론 기본서', round: 1, totalParts: 15, completedMap: {}, targetDate: '2026-06-13' }
+            { id: '1', name: '한국사 기출 회독', description: '단권화 교재', round: 1, totalParts: 20, completedMap: {}, targetDate: '2026-06-13' },
+            { id: '2', name: '행정법총론 기본서', description: '판례 위주', round: 1, totalParts: 15, completedMap: {}, targetDate: '2026-06-13' }
         ];
 
         function loadStoredSubjects() {
-            const keys = ['study_tracker_subjects_v6', 'study_tracker_subjects_v5', 'study_tracker_subjects_v4', 'study_tracker_subjects'];
+            const keys = ['study_tracker_subjects_v7', 'study_tracker_subjects_v6', 'study_tracker_subjects_v5', 'study_tracker_subjects'];
             for (let key of keys) {
                 const stored = localStorage.getItem(key);
                 if (stored) {
@@ -555,13 +613,10 @@
                                         s.completedSet.forEach(num => {
                                             s.completedMap[num] = '완료';
                                         });
-                                    } else if (typeof s.completedRange === 'number') {
-                                        for (let i = 1; i <= s.completedRange; i++) {
-                                            s.completedMap[i] = '완료';
-                                        }
                                     }
                                 }
                                 if (!s.round) s.round = 1;
+                                if (!s.description) s.description = '';
                                 return s;
                             });
                         }
@@ -703,8 +758,7 @@
         }
 
         function saveData() {
-            localStorage.setItem('study_tracker_subjects_v6', JSON.stringify(subjects));
-            localStorage.setItem('study_tracker_subjects_v5', JSON.stringify(subjects));
+            localStorage.setItem('study_tracker_subjects_v7', JSON.stringify(subjects));
             localStorage.setItem('study_tracker_subjects', JSON.stringify(subjects));
             render();
         }
@@ -712,12 +766,14 @@
         document.getElementById('addSubjectForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const nameInput = document.getElementById('subjectName');
+            const descInput = document.getElementById('subjectDesc');
             const partsInput = document.getElementById('totalParts');
             const dateInput = document.getElementById('targetDate');
 
             const newSubject = {
                 id: Date.now().toString(),
                 name: nameInput.value.trim(),
+                description: descInput.value.trim(),
                 round: 1,
                 totalParts: parseInt(partsInput.value, 10),
                 completedMap: {},
@@ -728,6 +784,7 @@
             saveData();
 
             nameInput.value = '';
+            descInput.value = '';
             partsInput.value = '';
             dateInput.value = '';
         });
@@ -737,6 +794,37 @@
                 subjects = subjects.filter(s => s.id !== id);
                 saveData();
             }
+        }
+
+        // 과목 순서 변경 함수 (상/하 이동)
+        function moveSubject(index, direction) {
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= subjects.length) return;
+            const temp = subjects[index];
+            subjects[index] = subjects[targetIndex];
+            subjects[targetIndex] = temp;
+            saveData();
+        }
+
+        // 과목명 및 설명 수정 함수
+        function editSubjectDetails(id) {
+            const subject = subjects.find(s => s.id === id);
+            if (!subject) return;
+
+            const newName = prompt('과목명을 입력하세요:', subject.name);
+            if (newName === null) return;
+            const trimmedName = newName.trim();
+            if (!trimmedName) {
+                alert('과목명은 비워둘 수 없습니다.');
+                return;
+            }
+
+            const newDesc = prompt('과목 설명을 입력하세요 (선택):', subject.description || '');
+            if (newDesc === null) return;
+
+            subject.name = trimmedName;
+            subject.description = newDesc.trim();
+            saveData();
         }
 
         function changeRound(subjectId, delta) {
@@ -763,10 +851,8 @@
             const wasComplete = completedCount === subject.totalParts;
 
             if (isDone) {
-                // 이미 채워진 숫자 클릭 시: 해당 숫자의 날짜 기록 완전히 삭제(리셋)
                 delete subject.completedMap[partNum];
             } else {
-                // 채워지지 않은 숫자 클릭 시: 1번부터 N번까지 비어있는 칸에만 "당일 날짜" 고정 기록
                 for (let i = 1; i <= partNum; i++) {
                     if (!subject.completedMap[i]) {
                         subject.completedMap[i] = todayStr;
@@ -821,15 +907,17 @@
                     card.innerHTML = `
                         <div class="subject-header">
                             <div class="subject-info">
-                                <h3>
-                                    ${escapeHtml(subject.name)}
+                                <div class="subject-title-row">
+                                    <h3>${escapeHtml(subject.name)}</h3>
+                                    ${subject.description ? `<span class="subject-desc">(${escapeHtml(subject.description)})</span>` : ''}
+                                    <button class="btn-edit-title" onclick="editSubjectDetails('${subject.id}')" title="과목명/설명 수정">✏️</button>
                                     <span class="round-control" style="background:${subjectColor}15; color:${subjectColor};">
                                         <button class="btn-round" style="color:${subjectColor};" onclick="changeRound('${subject.id}', -1)">-</button>
                                         <span>${subject.round || 1}회독</span>
                                         <button class="btn-round" style="color:${subjectColor};" onclick="changeRound('${subject.id}', 1)">+</button>
                                     </span>
                                     ${isComplete ? '<span class="complete-badge">🎉 완강!</span>' : ''}
-                                </h3>
+                                </div>
                                 <div class="subject-meta">
                                     <span>달성률: ${completedCount} / ${subject.totalParts}</span>
                                     ${subject.targetDate ? `<span>• 목표일: ${formattedDate}</span>` : ''}
@@ -837,6 +925,10 @@
                                 </div>
                             </div>
                             <div class="subject-actions">
+                                <div class="btn-order-group">
+                                    <button class="btn-order" onclick="moveSubject(${index}, -1)" ${index === 0 ? 'disabled style="opacity:0.3;cursor:default;"' : ''}>▲</button>
+                                    <button class="btn-order" onclick="moveSubject(${index}, 1)" ${index === subjects.length - 1 ? 'disabled style="opacity:0.3;cursor:default;"' : ''}>▼</button>
+                                </div>
                                 <span class="subject-percentage ${isComplete ? 'complete' : ''}">${percent}%</span>
                                 <button class="btn-delete" onclick="deleteSubject('${subject.id}')">삭제</button>
                             </div>
