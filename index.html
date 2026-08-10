@@ -498,7 +498,6 @@
             { id: '2', name: '행정법총론 기본서', totalParts: 15, completedSet: [1, 2, 3, 4, 5], targetDate: '2026-06-13' }
         ];
 
-        // 데이터 통합 로드 (이전 버전 데이터 보존 및 마이그레이션)
         function loadStoredSubjects() {
             const keys = ['study_tracker_subjects_v5', 'study_tracker_subjects_v4', 'study_tracker_subjects_v3', 'study_tracker_subjects'];
             for (let key of keys) {
@@ -508,7 +507,6 @@
                         let parsed = JSON.parse(stored);
                         if (Array.isArray(parsed) && parsed.length > 0) {
                             return parsed.map(s => {
-                                // 단일 숫자형 범위 데이터를 배열 세트로 자동 변환
                                 if (typeof s.completedRange === 'number' && !s.completedSet) {
                                     s.completedSet = Array.from({ length: s.completedRange }, (_, i) => i + 1);
                                 }
@@ -656,7 +654,6 @@
         }
 
         function saveData() {
-            // 호환성을 위해 구버전 및 신버전 키에 모두 영구 저장
             localStorage.setItem('study_tracker_subjects_v5', JSON.stringify(subjects));
             localStorage.setItem('study_tracker_subjects', JSON.stringify(subjects));
             render();
@@ -691,6 +688,7 @@
             }
         }
 
+        // 클릭 로직: 안 채워진 숫자 클릭시 1~N 채움 / 채워진 숫자 클릭시 N 단독 해제
         function handlePartToggle(subjectId, partNum) {
             const subject = subjects.find(s => s.id === subjectId);
             if (!subject) return;
@@ -699,13 +697,20 @@
                 subject.completedSet = [];
             }
 
-            const idx = subject.completedSet.indexOf(partNum);
+            const isDone = subject.completedSet.includes(partNum);
             const wasComplete = subject.completedSet.length === subject.totalParts;
 
-            if (idx > -1) {
-                subject.completedSet.splice(idx, 1);
+            if (isDone) {
+                const idx = subject.completedSet.indexOf(partNum);
+                if (idx > -1) {
+                    subject.completedSet.splice(idx, 1);
+                }
             } else {
-                subject.completedSet.push(partNum);
+                for (let i = 1; i <= partNum; i++) {
+                    if (!subject.completedSet.includes(i)) {
+                        subject.completedSet.push(i);
+                    }
+                }
             }
 
             if (!wasComplete && subject.completedSet.length === subject.totalParts) {
