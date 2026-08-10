@@ -254,7 +254,35 @@
             margin-bottom: 0.2rem;
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .round-control {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            padding: 0.1rem 0.45rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            user-select: none;
+        }
+
+        .btn-round {
+            background: transparent;
+            border: none;
+            font-weight: 800;
+            cursor: pointer;
+            padding: 0 0.25rem;
+            font-size: 0.85rem;
+            line-height: 1;
+            opacity: 0.75;
+        }
+
+        .btn-round:hover {
+            opacity: 1;
+            transform: scale(1.15);
         }
 
         .complete-badge {
@@ -311,7 +339,7 @@
 
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
             gap: 6px;
             margin-top: 1rem;
         }
@@ -322,14 +350,28 @@
             color: var(--text-main);
             border-radius: 8px;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            font-weight: 600;
-            font-size: 0.85rem;
             cursor: pointer;
             user-select: none;
             border: 1px solid var(--border-color);
             transition: all 0.15s ease;
+            padding: 2px;
+        }
+
+        .part-num {
+            font-size: 0.85rem;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .part-date {
+            font-size: 0.62rem;
+            line-height: 1;
+            margin-top: 2px;
+            opacity: 0.9;
+            font-weight: 500;
         }
 
         .part-box:hover {
@@ -423,7 +465,7 @@
         <header>
             <div class="title-area">
                 <h1>📚 스마트 공부 달성률 트래커</h1>
-                <p>숫자 칸을 클릭하면 색상이 채워지며 달성 처리됩니다</p>
+                <p>숫자 칸을 클릭하면 달성 일자와 함께 색상이 채워집니다</p>
             </div>
             <button class="theme-toggle" id="themeToggleBtn">🌙 다크 모드</button>
         </header>
@@ -494,12 +536,12 @@
         const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
 
         const defaultSubjects = [
-            { id: '1', name: '한국사 기출 회독', totalParts: 20, completedSet: [1, 2, 3, 4, 5, 6, 7, 8], targetDate: '2026-06-13' },
-            { id: '2', name: '행정법총론 기본서', totalParts: 15, completedSet: [1, 2, 3, 4, 5], targetDate: '2026-06-13' }
+            { id: '1', name: '한국사 기출 회독', round: 1, totalParts: 20, completedMap: {}, targetDate: '2026-06-13' },
+            { id: '2', name: '행정법총론 기본서', round: 1, totalParts: 15, completedMap: {}, targetDate: '2026-06-13' }
         ];
 
         function loadStoredSubjects() {
-            const keys = ['study_tracker_subjects_v5', 'study_tracker_subjects_v4', 'study_tracker_subjects_v3', 'study_tracker_subjects'];
+            const keys = ['study_tracker_subjects_v6', 'study_tracker_subjects_v5', 'study_tracker_subjects_v4', 'study_tracker_subjects'];
             for (let key of keys) {
                 const stored = localStorage.getItem(key);
                 if (stored) {
@@ -507,12 +549,19 @@
                         let parsed = JSON.parse(stored);
                         if (Array.isArray(parsed) && parsed.length > 0) {
                             return parsed.map(s => {
-                                if (typeof s.completedRange === 'number' && !s.completedSet) {
-                                    s.completedSet = Array.from({ length: s.completedRange }, (_, i) => i + 1);
+                                if (!s.completedMap || typeof s.completedMap !== 'object') {
+                                    s.completedMap = {};
+                                    if (Array.isArray(s.completedSet)) {
+                                        s.completedSet.forEach(num => {
+                                            s.completedMap[num] = '완료';
+                                        });
+                                    } else if (typeof s.completedRange === 'number') {
+                                        for (let i = 1; i <= s.completedRange; i++) {
+                                            s.completedMap[i] = '완료';
+                                        }
+                                    }
                                 }
-                                if (!Array.isArray(s.completedSet)) {
-                                    s.completedSet = [];
-                                }
+                                if (!s.round) s.round = 1;
                                 return s;
                             });
                         }
@@ -654,6 +703,7 @@
         }
 
         function saveData() {
+            localStorage.setItem('study_tracker_subjects_v6', JSON.stringify(subjects));
             localStorage.setItem('study_tracker_subjects_v5', JSON.stringify(subjects));
             localStorage.setItem('study_tracker_subjects', JSON.stringify(subjects));
             render();
@@ -668,8 +718,9 @@
             const newSubject = {
                 id: Date.now().toString(),
                 name: nameInput.value.trim(),
+                round: 1,
                 totalParts: parseInt(partsInput.value, 10),
-                completedSet: [],
+                completedMap: {},
                 targetDate: dateInput.value
             };
 
@@ -688,32 +739,42 @@
             }
         }
 
-        // 클릭 로직: 안 채워진 숫자 클릭시 1~N 채움 / 채워진 숫자 클릭시 N 단독 해제
+        function changeRound(subjectId, delta) {
+            const subject = subjects.find(s => s.id === subjectId);
+            if (!subject) return;
+            if (!subject.round) subject.round = 1;
+            subject.round = Math.max(1, subject.round + delta);
+            saveData();
+        }
+
         function handlePartToggle(subjectId, partNum) {
             const subject = subjects.find(s => s.id === subjectId);
             if (!subject) return;
 
-            if (!Array.isArray(subject.completedSet)) {
-                subject.completedSet = [];
+            if (!subject.completedMap || typeof subject.completedMap !== 'object') {
+                subject.completedMap = {};
             }
 
-            const isDone = subject.completedSet.includes(partNum);
-            const wasComplete = subject.completedSet.length === subject.totalParts;
+            const now = new Date();
+            const todayStr = `${now.getMonth() + 1}/${now.getDate()}`;
+
+            const isDone = Boolean(subject.completedMap[partNum]);
+            const completedCount = Object.keys(subject.completedMap).length;
+            const wasComplete = completedCount === subject.totalParts;
 
             if (isDone) {
-                const idx = subject.completedSet.indexOf(partNum);
-                if (idx > -1) {
-                    subject.completedSet.splice(idx, 1);
-                }
+                // 이미 채워진 숫자 클릭 시: 해당 숫자의 날짜 기록 완전히 삭제(리셋)
+                delete subject.completedMap[partNum];
             } else {
+                // 채워지지 않은 숫자 클릭 시: 1번부터 N번까지 비어있는 칸에만 "당일 날짜" 고정 기록
                 for (let i = 1; i <= partNum; i++) {
-                    if (!subject.completedSet.includes(i)) {
-                        subject.completedSet.push(i);
+                    if (!subject.completedMap[i]) {
+                        subject.completedMap[i] = todayStr;
                     }
                 }
             }
 
-            if (!wasComplete && subject.completedSet.length === subject.totalParts) {
+            if (!wasComplete && Object.keys(subject.completedMap).length === subject.totalParts) {
                 triggerConfetti();
             }
 
@@ -735,11 +796,11 @@
                 `;
             } else {
                 subjects.forEach((subject, index) => {
-                    if (!Array.isArray(subject.completedSet)) {
-                        subject.completedSet = [];
+                    if (!subject.completedMap || typeof subject.completedMap !== 'object') {
+                        subject.completedMap = {};
                     }
 
-                    const completedCount = subject.completedSet.length;
+                    const completedCount = Object.keys(subject.completedMap).length;
                     grandTotalParts += subject.totalParts;
                     grandCompletedParts += completedCount;
 
@@ -762,6 +823,11 @@
                             <div class="subject-info">
                                 <h3>
                                     ${escapeHtml(subject.name)}
+                                    <span class="round-control" style="background:${subjectColor}15; color:${subjectColor};">
+                                        <button class="btn-round" style="color:${subjectColor};" onclick="changeRound('${subject.id}', -1)">-</button>
+                                        <span>${subject.round || 1}회독</span>
+                                        <button class="btn-round" style="color:${subjectColor};" onclick="changeRound('${subject.id}', 1)">+</button>
+                                    </span>
                                     ${isComplete ? '<span class="complete-badge">🎉 완강!</span>' : ''}
                                 </h3>
                                 <div class="subject-meta">
@@ -781,8 +847,14 @@
                         <div class="grid-container">
                             ${Array.from({ length: subject.totalParts }, (_, i) => {
                                 const partNum = i + 1;
-                                const isDone = subject.completedSet.includes(partNum);
-                                return `<div class="part-box ${isDone ? 'active' : ''}" onclick="handlePartToggle('${subject.id}', ${partNum})">${partNum}</div>`;
+                                const completedDate = subject.completedMap[partNum];
+                                const isDone = Boolean(completedDate);
+                                return `
+                                    <div class="part-box ${isDone ? 'active' : ''}" onclick="handlePartToggle('${subject.id}', ${partNum})">
+                                        <span class="part-num">${partNum}</span>
+                                        ${isDone ? `<span class="part-date">${completedDate}</span>` : ''}
+                                    </div>
+                                `;
                             }).join('')}
                         </div>
                     `;
