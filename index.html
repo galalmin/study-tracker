@@ -17,8 +17,6 @@
             --primary-light: #eef2ff;
             --border-color: #e2e8f0;
             --box-bg: #f1f5f9;
-            --box-active: #4f46e5;
-            --box-active-text: #ffffff;
             --accent-green: #10b981;
             --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
             --radius: 16px;
@@ -34,8 +32,6 @@
             --primary-light: #1e1b4b;
             --border-color: #334155;
             --box-bg: #334155;
-            --box-active: #6366f1;
-            --box-active-text: #ffffff;
         }
 
         * {
@@ -224,67 +220,11 @@
             border: none;
         }
 
-        .form-card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 1.25rem 1.5rem;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-            margin-bottom: 1.5rem;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1.2fr auto;
-            gap: 0.75rem;
-            align-items: flex-end;
-        }
-
-        @media (max-width: 680px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.3rem;
-        }
-
-        .input-group label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-sub);
-        }
-
-        .input-group input {
-            padding: 0.65rem 0.85rem;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-color);
-            color: var(--text-main);
-            font-size: 0.9rem;
-            outline: none;
-        }
-
-        .btn-add {
-            background: var(--primary);
-            color: #ffffff;
-            border: none;
-            padding: 0.65rem 1.2rem;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            height: 42px;
-            white-space: nowrap;
-        }
-
         .subject-list {
             display: flex;
             flex-direction: column;
             gap: 1.25rem;
+            margin-bottom: 1.5rem;
         }
 
         .subject-card {
@@ -293,10 +233,12 @@
             padding: 1.25rem;
             box-shadow: var(--shadow);
             border: 1px solid var(--border-color);
+            border-left: 6px solid var(--subject-color, var(--primary));
         }
 
         .subject-card.complete {
             border-color: var(--accent-green);
+            border-left: 6px solid var(--accent-green);
         }
 
         .subject-header {
@@ -351,7 +293,7 @@
         .subject-percentage {
             font-size: 1.15rem;
             font-weight: 800;
-            color: var(--primary);
+            color: var(--subject-color, var(--primary));
         }
 
         .subject-percentage.complete {
@@ -377,7 +319,7 @@
         .part-box {
             aspect-ratio: 1;
             background-color: var(--box-bg);
-            color: var(--text-sub);
+            color: var(--text-main);
             border-radius: 8px;
             display: flex;
             justify-content: center;
@@ -386,14 +328,98 @@
             font-size: 0.85rem;
             cursor: pointer;
             user-select: none;
-            border: 1px solid transparent;
-            transition: all 0.15s ease;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .part-box.active {
-            background-color: var(--box-active);
-            color: var(--box-active-text);
-            border-color: var(--box-active);
+        .part-box:hover {
+            border-color: var(--subject-color, var(--primary));
+            color: var(--subject-color, var(--primary));
+        }
+
+        .part-box.completed-placeholder {
+            aspect-ratio: 1;
+            background-color: transparent;
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-sub);
+            font-size: 0.7rem;
+            opacity: 0.35;
+            transition: opacity 0.2s;
+        }
+
+        .part-box.completed-placeholder:hover {
+            opacity: 1;
+            background-color: var(--primary-light);
+        }
+
+        /* Form Card at Bottom */
+        .form-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            margin-top: 1rem;
+        }
+
+        .form-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--text-main);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1.2fr auto;
+            gap: 0.75rem;
+            align-items: flex-end;
+        }
+
+        @media (max-width: 680px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .input-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-sub);
+        }
+
+        .input-group input {
+            padding: 0.65rem 0.85rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-main);
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .btn-add {
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+            padding: 0.65rem 1.2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            height: 42px;
+            white-space: nowrap;
         }
 
         .empty-state {
@@ -411,7 +437,7 @@
         <header>
             <div class="title-area">
                 <h1>📚 스마트 공부 달성률 트래커</h1>
-                <p>번호 클릭 시 이전 번호까지 자동 선택</p>
+                <p>숫자 칸을 누르면 개별 파트 완료 처리됩니다</p>
             </div>
             <button class="theme-toggle" id="themeToggleBtn">🌙 다크 모드</button>
         </header>
@@ -443,7 +469,12 @@
             </section>
         </div>
 
+        <!-- Subject List -->
+        <main class="subject-list" id="subjectList"></main>
+
+        <!-- Form Card Moved to Bottom -->
         <section class="form-card">
+            <div class="form-title">➕ 새로운 과목 추가</div>
             <form id="addSubjectForm" class="form-grid">
                 <div class="input-group">
                     <label for="subjectName">과목명</label>
@@ -460,17 +491,30 @@
                 <button type="submit" class="btn-add">+ 과목 추가</button>
             </form>
         </section>
-
-        <main class="subject-list" id="subjectList"></main>
     </div>
 
     <script>
-        const defaultSubjects = [
-            { id: '1', name: '한국사 기출 회독', totalParts: 20, completedRange: 8, targetDate: '' },
-            { id: '2', name: '행정법총론 기본서', totalParts: 15, completedRange: 5, targetDate: '' }
+        // Color Palette for Auto-Assignment
+        const colorPalette = [
+            '#6366f1', // Indigo
+            '#06b6d4', // Cyan
+            '#ec4899', // Pink
+            '#f59e0b', // Amber
+            '#8b5cf6', // Purple
+            '#10b981', // Emerald
+            '#3b82f6', // Blue
+            '#f97316'  // Orange
         ];
 
-        let subjects = JSON.parse(localStorage.getItem('study_tracker_subjects')) || defaultSubjects;
+        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+
+        const defaultSubjects = [
+            { id: '1', name: '한국사 기출 회독', totalParts: 20, completedSet: [1, 2, 3, 4, 5, 6, 7, 8], targetDate: '2026-06-13' },
+            { id: '2', name: '행정법총론 기본서', totalParts: 15, completedSet: [1, 2, 3, 4, 5], targetDate: '2026-06-13' }
+        ];
+
+        let rawSubjects = JSON.parse(localStorage.getItem('study_tracker_subjects_v4'));
+        let subjects = rawSubjects || defaultSubjects;
 
         const themeBtn = document.getElementById('themeToggleBtn');
         let isDarkMode = localStorage.getItem('study_tracker_theme') === 'dark';
@@ -569,6 +613,22 @@
             togglePomoMode();
         });
 
+        // Format Date with Day of Week
+        function formatDateWithDay(dateStr) {
+            if (!dateStr) return '';
+            const dateParts = dateStr.split('-');
+            if (dateParts.length !== 3) return dateStr;
+            
+            const year = dateParts[0];
+            const month = parseInt(dateParts[1], 10);
+            const day = parseInt(dateParts[2], 10);
+            
+            const dateObj = new Date(year, month - 1, day);
+            const dayOfWeek = dayNames[dateObj.getDay()];
+
+            return `${year}.${month}.${day}(${dayOfWeek})`;
+        }
+
         function getDDayString(targetDateStr) {
             if (!targetDateStr) return '';
             const target = new Date(targetDateStr);
@@ -585,7 +645,7 @@
         }
 
         function saveData() {
-            localStorage.setItem('study_tracker_subjects', JSON.stringify(subjects));
+            localStorage.setItem('study_tracker_subjects_v4', JSON.stringify(subjects));
             render();
         }
 
@@ -599,7 +659,7 @@
                 id: Date.now().toString(),
                 name: nameInput.value.trim(),
                 totalParts: parseInt(partsInput.value, 10),
-                completedRange: 0,
+                completedSet: [],
                 targetDate: dateInput.value
             };
 
@@ -618,19 +678,24 @@
             }
         }
 
-        function handlePartClick(subjectId, clickedIndex) {
+        function handlePartToggle(subjectId, partNum) {
             const subject = subjects.find(s => s.id === subjectId);
             if (!subject) return;
 
-            const wasComplete = subject.completedRange === subject.totalParts;
-
-            if (subject.completedRange === clickedIndex) {
-                subject.completedRange = clickedIndex - 1;
-            } else {
-                subject.completedRange = clickedIndex;
+            if (!Array.isArray(subject.completedSet)) {
+                subject.completedSet = [];
             }
 
-            if (!wasComplete && subject.completedRange === subject.totalParts) {
+            const idx = subject.completedSet.indexOf(partNum);
+            const wasComplete = subject.completedSet.length === subject.totalParts;
+
+            if (idx > -1) {
+                subject.completedSet.splice(idx, 1);
+            } else {
+                subject.completedSet.push(partNum);
+            }
+
+            if (!wasComplete && subject.completedSet.length === subject.totalParts) {
                 triggerConfetti();
             }
 
@@ -647,23 +712,31 @@
             if (subjects.length === 0) {
                 listEl.innerHTML = `
                     <div class="empty-state">
-                        <p>등록된 과목이 없습니다. 새로운 과목을 추가해 보세요!</p>
+                        <p>등록된 과목이 없습니다. 아래 폼에서 새로운 과목을 추가해 보세요!</p>
                     </div>
                 `;
             } else {
-                subjects.forEach(subject => {
+                subjects.forEach((subject, index) => {
+                    if (!Array.isArray(subject.completedSet)) {
+                        subject.completedSet = [];
+                    }
+
+                    const completedCount = subject.completedSet.length;
                     grandTotalParts += subject.totalParts;
-                    grandCompletedParts += subject.completedRange;
+                    grandCompletedParts += completedCount;
 
                     const percent = subject.totalParts > 0 
-                        ? Math.round((subject.completedRange / subject.totalParts) * 100) 
+                        ? Math.round((completedCount / subject.totalParts) * 100) 
                         : 0;
 
                     const isComplete = percent === 100;
+                    const subjectColor = colorPalette[index % colorPalette.length];
 
                     const card = document.createElement('div');
                     card.className = `subject-card ${isComplete ? 'complete' : ''}`;
+                    card.style.setProperty('--subject-color', subjectColor);
 
+                    const formattedDate = formatDateWithDay(subject.targetDate);
                     const dDayStr = getDDayString(subject.targetDate);
 
                     card.innerHTML = `
@@ -674,9 +747,9 @@
                                     ${isComplete ? '<span class="complete-badge">🎉 완강!</span>' : ''}
                                 </h3>
                                 <div class="subject-meta">
-                                    <span>달성률: ${subject.completedRange} / ${subject.totalParts}</span>
-                                    ${subject.targetDate ? `<span>• 목표: ${subject.targetDate}</span>` : ''}
-                                    ${dDayStr ? `<span class="d-day-tag">${dDayStr}</span>` : ''}
+                                    <span>달성률: ${completedCount} / ${subject.totalParts}</span>
+                                    ${subject.targetDate ? `<span>• 목표일: ${formattedDate}</span>` : ''}
+                                    ${dDayStr ? `<span class="d-day-tag" style="background:${subjectColor}15; color:${subjectColor};">${dDayStr}</span>` : ''}
                                 </div>
                             </div>
                             <div class="subject-actions">
@@ -685,18 +758,15 @@
                             </div>
                         </div>
                         <div class="progress-bar-bg" style="height: 8px; margin-bottom: 0.8rem;">
-                            <div class="progress-bar-fill" style="width: ${percent}%; ${isComplete ? 'background: #10b981;' : ''}"></div>
+                            <div class="progress-bar-fill" style="width: ${percent}%; background: ${isComplete ? 'var(--accent-green)' : subjectColor};"></div>
                         </div>
                         <div class="grid-container">
                             ${Array.from({ length: subject.totalParts }, (_, i) => {
                                 const partNum = i + 1;
-                                const isActive = partNum <= subject.completedRange;
-                                return `
-                                    <div class="part-box ${isActive ? 'active' : ''}" 
-                                         onclick="handlePartClick('${subject.id}', ${partNum})">
-                                        ${partNum}
-                                    </div>
-                                `;
+                                const isDone = subject.completedSet.includes(partNum);
+                                return isDone 
+                                    ? `<div class="completed-placeholder" onclick="handlePartToggle('${subject.id}', ${partNum})" title="복원하려면 클릭하세요">✓</div>`
+                                    : `<div class="part-box" onclick="handlePartToggle('${subject.id}', ${partNum})">${partNum}</div>`;
                             }).join('')}
                         </div>
                     `;
