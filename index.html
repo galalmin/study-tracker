@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 캐시 방지 메타 태그 (모바일 실시간 반영 강화) -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>스마트 공부 달성률 트래커</title>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -87,9 +91,10 @@
             box-shadow: var(--shadow);
         }
 
+        /* 대시보드 레이아웃 비율 수정: 월별 계획 공간 확대 (1fr : 1.5fr) */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr 280px;
+            grid-template-columns: 1fr 1.5fr;
             gap: 1.25rem;
             margin-bottom: 1.5rem;
         }
@@ -157,67 +162,62 @@
             color: var(--text-main);
         }
 
-        .pomo-card {
+        /* 월별 계획 카드 스타일 */
+        .monthly-plan-card {
             background: var(--card-bg);
             border-radius: var(--radius);
-            padding: 1.25rem;
+            padding: 1.25rem 1.5rem;
             box-shadow: var(--shadow);
             border: 1px solid var(--border-color);
-            text-align: center;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+        }
+
+        .monthly-plan-header {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-        }
-
-        .pomo-title {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: var(--text-sub);
-            margin-bottom: 0.4rem;
-        }
-
-        .pomo-timer {
-            font-size: 2.2rem;
-            font-weight: 800;
-            font-variant-numeric: tabular-nums;
-            color: var(--text-main);
-            margin: 0.1rem 0;
-            letter-spacing: -0.03em;
-        }
-
-        .pomo-mode-badge {
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 0.2rem 0.6rem;
-            border-radius: 12px;
-            background: var(--primary-light);
-            color: var(--primary);
             margin-bottom: 0.6rem;
         }
 
-        .pomo-controls {
+        .monthly-plan-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
             display: flex;
-            gap: 0.4rem;
-            width: 100%;
-            justify-content: center;
+            align-items: center;
+            gap: 0.3rem;
         }
 
-        .btn-pomo {
-            padding: 0.4rem 0.8rem;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
+        .monthly-plan-save-tag {
+            font-size: 0.7rem;
+            color: var(--accent-green);
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .monthly-plan-save-tag.visible {
+            opacity: 1;
+        }
+
+        .monthly-plan-textarea {
+            width: 100%;
+            height: 100px;
             background: var(--bg-color);
             color: var(--text-main);
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0.75rem;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
         }
 
-        .btn-pomo-primary {
-            background: var(--primary);
-            color: #ffffff;
-            border: none;
+        .monthly-plan-textarea:focus {
+            border-color: var(--primary);
         }
 
         .subject-list {
@@ -260,7 +260,6 @@
             font-weight: 700;
         }
 
-        /* 은은한 설명란 스타일 */
         .subject-desc {
             font-size: 0.82rem;
             color: var(--text-sub);
@@ -326,7 +325,21 @@
             gap: 0.5rem;
             align-items: center;
             flex-wrap: wrap;
-            margin-top: 0.2rem;
+            margin-top: 0.25rem;
+        }
+
+        .remaining-tag {
+            font-weight: 700;
+            color: #e11d48;
+            background: #ffe4e6;
+            padding: 0.1rem 0.45rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+        }
+
+        .remaining-tag.complete {
+            color: #059669;
+            background: #d1fae5;
         }
 
         .d-day-tag {
@@ -344,7 +357,6 @@
             gap: 0.5rem;
         }
 
-        /* 순서 이동 버튼 스타일 */
         .btn-order-group {
             display: flex;
             flex-direction: column;
@@ -539,15 +551,17 @@
                 </div>
             </section>
 
-            <section class="pomo-card">
-                <div class="pomo-title">⏱️ 뽀모도로 타이머</div>
-                <span class="pomo-mode-badge" id="pomoModeBadge">🔥 집중 시간 (25분)</span>
-                <div class="pomo-timer" id="pomoDisplay">25:00</div>
-                <div class="pomo-controls">
-                    <button class="btn-pomo btn-pomo-primary" id="pomoStartBtn">시작</button>
-                    <button class="btn-pomo" id="pomoResetBtn">리셋</button>
-                    <button class="btn-pomo" id="pomoModeBtn">쉬는시간</button>
+            <!-- 뽀모도로 대신 새로 추가된 월별 계획 영역 -->
+            <section class="monthly-plan-card">
+                <div class="monthly-plan-header">
+                    <span class="monthly-plan-title">🗓️ 이번 달 목표 & 계획</span>
+                    <span class="monthly-plan-save-tag" id="saveNotice">✓ 자동 저장됨</span>
                 </div>
+                <textarea 
+                    class="monthly-plan-textarea" 
+                    id="monthlyPlanInput" 
+                    placeholder="이번 달 주요 수험 목표나 공부 계획을 자유롭게 기록하세요 (예: 한국사 기출 1회독 완강, 행정법 판례 정리 등)"
+                ></textarea>
             </section>
         </div>
 
@@ -599,7 +613,7 @@
         ];
 
         function loadStoredSubjects() {
-            const keys = ['study_tracker_subjects_v7', 'study_tracker_subjects_v6', 'study_tracker_subjects_v5', 'study_tracker_subjects'];
+            const keys = ['study_tracker_subjects_v9', 'study_tracker_subjects_v8', 'study_tracker_subjects_v7', 'study_tracker_subjects_v6', 'study_tracker_subjects_v5', 'study_tracker_subjects'];
             for (let key of keys) {
                 const stored = localStorage.getItem(key);
                 if (stored) {
@@ -655,76 +669,22 @@
             }
         }
 
-        let pomoTime = 25 * 60;
-        let pomoTimerId = null;
-        let isWorkMode = true;
+        // 월별 계획 저장 기능
+        const monthlyPlanInput = document.getElementById('monthlyPlanInput');
+        const saveNotice = document.getElementById('saveNotice');
+        let saveTimeout = null;
 
-        const pomoDisplay = document.getElementById('pomoDisplay');
-        const pomoStartBtn = document.getElementById('pomoStartBtn');
-        const pomoResetBtn = document.getElementById('pomoResetBtn');
-        const pomoModeBtn = document.getElementById('pomoModeBtn');
-        const pomoModeBadge = document.getElementById('pomoModeBadge');
+        // 저장된 월별 계획 불러오기
+        monthlyPlanInput.value = localStorage.getItem('study_tracker_monthly_plan') || '';
 
-        function updatePomoDisplay() {
-            const mins = Math.floor(pomoTime / 60);
-            const secs = pomoTime % 60;
-            pomoDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-        }
-
-        pomoStartBtn.addEventListener('click', () => {
-            if (pomoTimerId) {
-                clearInterval(pomoTimerId);
-                pomoTimerId = null;
-                pomoStartBtn.textContent = '시작';
-            } else {
-                pomoStartBtn.textContent = '일시정지';
-                pomoTimerId = setInterval(() => {
-                    if (pomoTime > 0) {
-                        pomoTime--;
-                        updatePomoDisplay();
-                    } else {
-                        clearInterval(pomoTimerId);
-                        pomoTimerId = null;
-                        pomoStartBtn.textContent = '시작';
-                        triggerConfetti();
-                        alert(isWorkMode ? '🎉 집중 시간이 끝났습니다! 5분간 휴식하세요.' : '🔔 휴식 시간이 끝났습니다!');
-                        togglePomoMode();
-                    }
-                }, 1000);
-            }
-        });
-
-        pomoResetBtn.addEventListener('click', () => {
-            if (pomoTimerId) {
-                clearInterval(pomoTimerId);
-                pomoTimerId = null;
-                pomoStartBtn.textContent = '시작';
-            }
-            pomoTime = isWorkMode ? 25 * 60 : 5 * 60;
-            updatePomoDisplay();
-        });
-
-        function togglePomoMode() {
-            isWorkMode = !isWorkMode;
-            if (isWorkMode) {
-                pomoTime = 25 * 60;
-                pomoModeBadge.textContent = '🔥 집중 시간 (25분)';
-                pomoModeBtn.textContent = '쉬는시간';
-            } else {
-                pomoTime = 5 * 60;
-                pomoModeBadge.textContent = '☕ 휴식 시간 (5분)';
-                pomoModeBtn.textContent = '집중시간';
-            }
-            updatePomoDisplay();
-        }
-
-        pomoModeBtn.addEventListener('click', () => {
-            if (pomoTimerId) {
-                clearInterval(pomoTimerId);
-                pomoTimerId = null;
-                pomoStartBtn.textContent = '시작';
-            }
-            togglePomoMode();
+        monthlyPlanInput.addEventListener('input', () => {
+            clearTimeout(saveTimeout);
+            localStorage.setItem('study_tracker_monthly_plan', monthlyPlanInput.value);
+            
+            saveNotice.classList.add('visible');
+            saveTimeout = setTimeout(() => {
+                saveNotice.classList.remove('visible');
+            }, 1500);
         });
 
         function formatDateWithDay(dateStr) {
@@ -758,7 +718,7 @@
         }
 
         function saveData() {
-            localStorage.setItem('study_tracker_subjects_v7', JSON.stringify(subjects));
+            localStorage.setItem('study_tracker_subjects_v9', JSON.stringify(subjects));
             localStorage.setItem('study_tracker_subjects', JSON.stringify(subjects));
             render();
         }
@@ -796,7 +756,6 @@
             }
         }
 
-        // 과목 순서 변경 함수 (상/하 이동)
         function moveSubject(index, direction) {
             const targetIndex = index + direction;
             if (targetIndex < 0 || targetIndex >= subjects.length) return;
@@ -806,7 +765,6 @@
             saveData();
         }
 
-        // 과목명 및 설명 수정 함수
         function editSubjectDetails(id) {
             const subject = subjects.find(s => s.id === id);
             if (!subject) return;
@@ -887,6 +845,8 @@
                     }
 
                     const completedCount = Object.keys(subject.completedMap).length;
+                    const remainingParts = Math.max(0, subject.totalParts - completedCount);
+                    
                     grandTotalParts += subject.totalParts;
                     grandCompletedParts += completedCount;
 
@@ -919,7 +879,10 @@
                                     ${isComplete ? '<span class="complete-badge">🎉 완강!</span>' : ''}
                                 </div>
                                 <div class="subject-meta">
-                                    <span>달성률: ${completedCount} / ${subject.totalParts}</span>
+                                    <span>진도: ${completedCount} / ${subject.totalParts}</span>
+                                    <span class="remaining-tag ${isComplete ? 'complete' : ''}">
+                                        ${isComplete ? '모두 완료!' : `남은 칸: ${remainingParts}개`}
+                                    </span>
                                     ${subject.targetDate ? `<span>• 목표일: ${formattedDate}</span>` : ''}
                                     ${dDayStr ? `<span class="d-day-tag" style="background:${subjectColor}15; color:${subjectColor};">${dDayStr}</span>` : ''}
                                 </div>
@@ -973,7 +936,6 @@
         }
 
         applyTheme();
-        updatePomoDisplay();
         render();
     </script>
 </body>
