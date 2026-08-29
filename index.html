@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- 캐시 방지 메타 태그 (모바일 실시간 반영 강화) -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -91,7 +90,6 @@
             box-shadow: var(--shadow);
         }
 
-        /* 대시보드 레이아웃 비율 수정: 월별 계획 공간 확대 (1fr : 1.5fr) */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr 1.5fr;
@@ -162,7 +160,6 @@
             color: var(--text-main);
         }
 
-        /* 월별 계획 카드 스타일 */
         .monthly-plan-card {
             background: var(--card-bg);
             border-radius: var(--radius);
@@ -268,18 +265,20 @@
             margin-left: 0.2rem;
         }
 
-        .btn-edit-title {
-            background: transparent;
-            border: none;
+        .btn-edit-all {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 0.85rem;
-            opacity: 0.6;
-            padding: 0.1rem 0.2rem;
-            transition: opacity 0.2s;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            color: var(--text-sub);
+            transition: all 0.2s;
         }
 
-        .btn-edit-title:hover {
-            opacity: 1;
+        .btn-edit-all:hover {
+            color: var(--primary);
+            border-color: var(--primary);
         }
 
         .round-control {
@@ -459,6 +458,7 @@
             box-shadow: var(--shadow);
             border: 1px solid var(--border-color);
             margin-top: 1rem;
+            margin-bottom: 1.5rem;
         }
 
         .form-title {
@@ -516,6 +516,179 @@
             white-space: nowrap;
         }
 
+        /* 월별 달력 섹션 */
+        .calendar-section {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            margin-top: 1.5rem;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .calendar-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .btn-nav {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .cal-day-label {
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.3rem 0;
+            color: var(--text-sub);
+        }
+
+        .cal-day-cell {
+            min-height: 85px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .cal-day-cell.other-month {
+            opacity: 0.3;
+        }
+
+        .cal-day-num {
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .cal-day-cell.today .cal-day-num {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .cal-bar {
+            font-size: 0.65rem;
+            padding: 2px 4px;
+            border-radius: 4px;
+            color: #ffffff;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+        }
+
+        .cal-note {
+            font-size: 0.65rem;
+            background: var(--box-bg);
+            color: var(--text-main);
+            padding: 2px 4px;
+            border-radius: 4px;
+            border-left: 3px solid var(--primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* 수정 모달 스타일 */
+        .modal-backdrop {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .modal-backdrop.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-top: 1.2rem;
+        }
+
+        .btn-cancel {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .btn-save {
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
         .empty-state {
             text-align: center;
             padding: 2.5rem;
@@ -551,7 +724,6 @@
                 </div>
             </section>
 
-            <!-- 뽀모도로 대신 새로 추가된 월별 계획 영역 -->
             <section class="monthly-plan-card">
                 <div class="monthly-plan-header">
                     <span class="monthly-plan-title">🗓️ 이번 달 목표 & 계획</span>
@@ -591,18 +763,58 @@
                 <button type="submit" class="btn-add">+ 과목 추가</button>
             </form>
         </section>
+
+        <!-- 하단 달력 섹션 -->
+        <section class="calendar-section">
+            <div class="calendar-header">
+                <div class="calendar-title" id="calendarTitle">📅 2026년 8월</div>
+                <div class="calendar-nav">
+                    <button class="btn-nav" onclick="changeMonth(-1)">◀</button>
+                    <button class="btn-nav" onclick="changeMonth(1)">▶</button>
+                </div>
+            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+        </section>
+    </div>
+
+    <!-- 수정 모달 -->
+    <div class="modal-backdrop" id="editModal">
+        <div class="modal-card">
+            <div class="modal-title">✏️ 과목 정보 수정</div>
+            <div class="modal-body">
+                <input type="hidden" id="editSubjectId">
+                <div class="input-group">
+                    <label for="editSubjectName">과목명</label>
+                    <input type="text" id="editSubjectName" required>
+                </div>
+                <div class="input-group">
+                    <label for="editSubjectDesc">설명</label>
+                    <input type="text" id="editSubjectDesc">
+                </div>
+                <div class="input-group">
+                    <label for="editSubjectRound">현재 회독 수</label>
+                    <input type="number" id="editSubjectRound" min="1" value="1">
+                </div>
+                <div class="input-group">
+                    <label for="editTotalParts">총 파트 수</label>
+                    <input type="number" id="editTotalParts" min="1" max="100">
+                </div>
+                <div class="input-group">
+                    <label for="editTargetDate">목표일</label>
+                    <input type="date" id="editTargetDate">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeEditModal()">취소</button>
+                <button class="btn-save" onclick="saveSubjectEdits()">저장</button>
+            </div>
+        </div>
     </div>
 
     <script>
         const colorPalette = [
-            '#6366f1', // Indigo
-            '#06b6d4', // Cyan
-            '#ec4899', // Pink
-            '#f59e0b', // Amber
-            '#8b5cf6', // Purple
-            '#10b981', // Emerald
-            '#3b82f6', // Blue
-            '#f97316'  // Orange
+            '#6366f1', '#06b6d4', '#ec4899', '#f59e0b', 
+            '#8b5cf6', '#10b981', '#3b82f6', '#f97316'
         ];
 
         const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
@@ -613,7 +825,7 @@
         ];
 
         function loadStoredSubjects() {
-            const keys = ['study_tracker_subjects_v9', 'study_tracker_subjects_v8', 'study_tracker_subjects_v7', 'study_tracker_subjects_v6', 'study_tracker_subjects_v5', 'study_tracker_subjects'];
+            const keys = ['study_tracker_subjects_v10', 'study_tracker_subjects_v9', 'study_tracker_subjects_v8', 'study_tracker_subjects'];
             for (let key of keys) {
                 const stored = localStorage.getItem(key);
                 if (stored) {
@@ -621,14 +833,7 @@
                         let parsed = JSON.parse(stored);
                         if (Array.isArray(parsed) && parsed.length > 0) {
                             return parsed.map(s => {
-                                if (!s.completedMap || typeof s.completedMap !== 'object') {
-                                    s.completedMap = {};
-                                    if (Array.isArray(s.completedSet)) {
-                                        s.completedSet.forEach(num => {
-                                            s.completedMap[num] = '완료';
-                                        });
-                                    }
-                                }
+                                if (!s.completedMap || typeof s.completedMap !== 'object') s.completedMap = {};
                                 if (!s.round) s.round = 1;
                                 if (!s.description) s.description = '';
                                 return s;
@@ -643,6 +848,20 @@
         }
 
         let subjects = loadStoredSubjects();
+        let calendarNotes = JSON.parse(localStorage.getItem('study_tracker_cal_notes') || '{}');
+
+        // 모바일 실시간 저장 안정화 (페이지 이탈/백그라운드 전환 시)
+        function forceSyncToStorage() {
+            localStorage.setItem('study_tracker_subjects_v10', JSON.stringify(subjects));
+            localStorage.setItem('study_tracker_subjects', JSON.stringify(subjects));
+            localStorage.setItem('study_tracker_cal_notes', JSON.stringify(calendarNotes));
+            localStorage.setItem('study_tracker_monthly_plan', monthlyPlanInput.value);
+        }
+
+        window.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') forceSyncToStorage();
+        });
+        window.addEventListener('pagehide', forceSyncToStorage);
 
         const themeBtn = document.getElementById('themeToggleBtn');
         let isDarkMode = localStorage.getItem('study_tracker_theme') === 'dark';
@@ -669,18 +888,16 @@
             }
         }
 
-        // 월별 계획 저장 기능
+        // 월별 계획
         const monthlyPlanInput = document.getElementById('monthlyPlanInput');
         const saveNotice = document.getElementById('saveNotice');
         let saveTimeout = null;
 
-        // 저장된 월별 계획 불러오기
         monthlyPlanInput.value = localStorage.getItem('study_tracker_monthly_plan') || '';
 
         monthlyPlanInput.addEventListener('input', () => {
             clearTimeout(saveTimeout);
             localStorage.setItem('study_tracker_monthly_plan', monthlyPlanInput.value);
-            
             saveNotice.classList.add('visible');
             saveTimeout = setTimeout(() => {
                 saveNotice.classList.remove('visible');
@@ -691,14 +908,11 @@
             if (!dateStr) return '';
             const dateParts = dateStr.split('-');
             if (dateParts.length !== 3) return dateStr;
-            
             const year = dateParts[0];
             const month = parseInt(dateParts[1], 10);
             const day = parseInt(dateParts[2], 10);
-            
             const dateObj = new Date(year, month - 1, day);
             const dayOfWeek = dayNames[dateObj.getDay()];
-
             return `${year}.${month}.${day}(${dayOfWeek})`;
         }
 
@@ -718,9 +932,9 @@
         }
 
         function saveData() {
-            localStorage.setItem('study_tracker_subjects_v9', JSON.stringify(subjects));
-            localStorage.setItem('study_tracker_subjects', JSON.stringify(subjects));
+            forceSyncToStorage();
             render();
+            renderCalendar();
         }
 
         document.getElementById('addSubjectForm').addEventListener('submit', (e) => {
@@ -765,23 +979,56 @@
             saveData();
         }
 
-        function editSubjectDetails(id) {
+        // 전체 수정 모달 관련
+        function openEditModal(id) {
             const subject = subjects.find(s => s.id === id);
             if (!subject) return;
 
-            const newName = prompt('과목명을 입력하세요:', subject.name);
-            if (newName === null) return;
-            const trimmedName = newName.trim();
-            if (!trimmedName) {
-                alert('과목명은 비워둘 수 없습니다.');
+            document.getElementById('editSubjectId').value = subject.id;
+            document.getElementById('editSubjectName').value = subject.name;
+            document.getElementById('editSubjectDesc').value = subject.description || '';
+            document.getElementById('editSubjectRound').value = subject.round || 1;
+            document.getElementById('editTotalParts').value = subject.totalParts;
+            document.getElementById('editTargetDate').value = subject.targetDate || '';
+
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+        }
+
+        function saveSubjectEdits() {
+            const id = document.getElementById('editSubjectId').value;
+            const subject = subjects.find(s => s.id === id);
+            if (!subject) return;
+
+            const name = document.getElementById('editSubjectName').value.trim();
+            if (!name) {
+                alert('과목명은 필수입니다.');
                 return;
             }
 
-            const newDesc = prompt('과목 설명을 입력하세요 (선택):', subject.description || '');
-            if (newDesc === null) return;
+            const totalParts = parseInt(document.getElementById('editTotalParts').value, 10);
+            if (isNaN(totalParts) || totalParts < 1) {
+                alert('총 파트 수는 1 이상이어야 합니다.');
+                return;
+            }
 
-            subject.name = trimmedName;
-            subject.description = newDesc.trim();
+            subject.name = name;
+            subject.description = document.getElementById('editSubjectDesc').value.trim();
+            subject.round = parseInt(document.getElementById('editSubjectRound').value, 10) || 1;
+            subject.totalParts = totalParts;
+            subject.targetDate = document.getElementById('editTargetDate').value;
+
+            // 총 파트 수가 줄어든 경우 넘어가는 완료 상태 제거
+            Object.keys(subject.completedMap).forEach(key => {
+                if (parseInt(key, 10) > totalParts) {
+                    delete subject.completedMap[key];
+                }
+            });
+
+            closeEditModal();
             saveData();
         }
 
@@ -823,6 +1070,88 @@
             }
 
             saveData();
+        }
+
+        // 달력 관련 로직
+        let calCurrentDate = new Date();
+
+        function changeMonth(delta) {
+            calCurrentDate.setMonth(calCurrentDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        function handleDateClick(dateKey) {
+            const existing = calendarNotes[dateKey] || '';
+            const newNote = prompt(`[${dateKey}] 날짜에 기록할 공부 계획/메모:`, existing);
+            if (newNote === null) return;
+            
+            if (newNote.trim() === '') {
+                delete calendarNotes[dateKey];
+            } else {
+                calendarNotes[dateKey] = newNote.trim();
+            }
+            saveData();
+        }
+
+        function renderCalendar() {
+            const calGrid = document.getElementById('calendarGrid');
+            const calTitle = document.getElementById('calendarTitle');
+            calGrid.innerHTML = '';
+
+            const year = calCurrentDate.getFullYear();
+            const month = calCurrentDate.getMonth();
+
+            calTitle.textContent = `📅 ${year}년 ${month + 1}월`;
+
+            // 요일 헤더
+            dayNames.forEach(day => {
+                const label = document.createElement('div');
+                label.className = 'cal-day-label';
+                label.textContent = day;
+                calGrid.appendChild(label);
+            });
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const prevDaysInMonth = new Date(year, month, 0).getDate();
+
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+            // 이전 달 날짜 칸
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const dayNum = prevDaysInMonth - i;
+                const cell = document.createElement('div');
+                cell.className = 'cal-day-cell other-month';
+                cell.innerHTML = `<span class="cal-day-num">${dayNum}</span>`;
+                calGrid.appendChild(cell);
+            }
+
+            // 현재 달 날짜 칸
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const cell = document.createElement('div');
+                cell.className = `cal-day-cell ${dateKey === todayStr ? 'today' : ''}`;
+                cell.onclick = () => handleDateClick(dateKey);
+
+                let contentHtml = `<span class="cal-day-num">${d}</span>`;
+
+                // 과목 목표일 가로 막대 표시
+                subjects.forEach((sub, idx) => {
+                    if (sub.targetDate === dateKey) {
+                        const color = colorPalette[idx % colorPalette.length];
+                        contentHtml += `<div class="cal-bar" style="background:${color};" title="${sub.name} 목표일">🎯 ${escapeHtml(sub.name)}</div>`;
+                    }
+                });
+
+                // 사용자 개별 메모 표시
+                if (calendarNotes[dateKey]) {
+                    contentHtml += `<div class="cal-note" title="${escapeHtml(calendarNotes[dateKey])}">📝 ${escapeHtml(calendarNotes[dateKey])}</div>`;
+                }
+
+                cell.innerHTML = contentHtml;
+                calGrid.appendChild(cell);
+            }
         }
 
         function render() {
@@ -870,7 +1199,7 @@
                                 <div class="subject-title-row">
                                     <h3>${escapeHtml(subject.name)}</h3>
                                     ${subject.description ? `<span class="subject-desc">(${escapeHtml(subject.description)})</span>` : ''}
-                                    <button class="btn-edit-title" onclick="editSubjectDetails('${subject.id}')" title="과목명/설명 수정">✏️</button>
+                                    <button class="btn-edit-all" onclick="openEditModal('${subject.id}')">✏️ 과목 수정</button>
                                     <span class="round-control" style="background:${subjectColor}15; color:${subjectColor};">
                                         <button class="btn-round" style="color:${subjectColor};" onclick="changeRound('${subject.id}', -1)">-</button>
                                         <span>${subject.round || 1}회독</span>
@@ -937,6 +1266,7 @@
 
         applyTheme();
         render();
+        renderCalendar();
     </script>
 </body>
 </html>
