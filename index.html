@@ -1,16 +1,1247 @@
-/* 과목 설명란: 검은색 글자로 변경 */
-.subject-description,
-.subject-desc {
-  color: #000000; /* 검은색 글자 */
-  font-weight: normal; /* 필요 시 기본 두께 적용 */
-}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>스마트 공부 달성률 트래커</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #eef2ff;
+            --border-color: #e2e8f0;
+            --box-bg: #f1f5f9;
+            --accent-green: #10b981;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            --radius: 16px;
+        }
 
-/* 남은 과목수: 강조 효과 제거 및 과목 설명과 동일한 스타일 적용 */
-.remaining-subjects,
-.remaining-count {
-  color: #000000; /* 검은색 글자 */
-  font-weight: normal; /* 강조(bold) 제거 */
-  background: none; /* 배경 강조 효과 제거 */
-  border: none; /* 테두리 효과 제거 */
-  padding: 0;
-}
+        .dark-mode {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --primary: #6366f1;
+            --primary-hover: #818cf8;
+            --primary-light: #1e1b4b;
+            --border-color: #334155;
+            --box-bg: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 1.5rem 1rem;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .title-area h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .title-area p {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            margin-top: 0.25rem;
+        }
+
+        .theme-toggle {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 0.8rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--text-main);
+            box-shadow: var(--shadow);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .dashboard-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.75rem;
+        }
+
+        .dashboard-title {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .dashboard-percentage {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 12px;
+            background-color: var(--box-bg);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #818cf8);
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .dashboard-stats {
+            display: flex;
+            gap: 1.25rem;
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+        }
+
+        .dashboard-stats span strong {
+            color: var(--text-main);
+        }
+
+        .monthly-plan-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .monthly-plan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.6rem;
+        }
+
+        .monthly-plan-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .monthly-plan-save-tag {
+            font-size: 0.7rem;
+            color: var(--accent-green);
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .monthly-plan-save-tag.visible {
+            opacity: 1;
+        }
+
+        .monthly-plan-textarea {
+            width: 100%;
+            height: 100px;
+            background: var(--bg-color);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0.75rem;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .monthly-plan-textarea:focus {
+            border-color: var(--primary);
+        }
+
+        .subject-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .subject-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            border-left: 6px solid var(--subject-color, var(--primary));
+        }
+
+        .subject-card.complete {
+            border-color: var(--accent-green);
+            border-left: 6px solid var(--accent-green);
+        }
+
+        .subject-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .subject-title-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .subject-info h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        /* 괄호 제거 및 일반 검은색 텍스트로 수정 */
+        .subject-desc {
+            font-size: 0.85rem;
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        .btn-edit-all {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            color: var(--text-sub);
+            transition: all 0.2s;
+        }
+
+        .btn-edit-all:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .round-control {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            padding: 0.1rem 0.45rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            user-select: none;
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .btn-round {
+            background: transparent;
+            border: none;
+            font-weight: 800;
+            cursor: pointer;
+            padding: 0 0.25rem;
+            font-size: 0.85rem;
+            line-height: 1;
+            opacity: 0.75;
+            color: var(--primary);
+        }
+
+        .btn-round:hover {
+            opacity: 1;
+            transform: scale(1.15);
+        }
+
+        .complete-badge {
+            font-size: 0.7rem;
+            background: #d1fae5;
+            color: #065f46;
+            padding: 0.1rem 0.4rem;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+
+        .subject-meta {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 0.25rem;
+        }
+
+        /* 강조 태그 제거 후 다른 설명과 통일된 텍스트 표현 */
+        .remaining-text {
+            color: var(--text-sub);
+        }
+
+        .d-day-tag {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 0.1rem 0.4rem;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+
+        .subject-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-order-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            margin-right: 0.2rem;
+        }
+
+        .btn-order {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-sub);
+            font-size: 0.65rem;
+            width: 22px;
+            height: 18px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            line-height: 1;
+        }
+
+        .btn-order:hover {
+            background: var(--border-color);
+            color: var(--text-main);
+        }
+
+        .subject-percentage {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--subject-color, var(--primary));
+        }
+
+        .subject-percentage.complete {
+            color: var(--accent-green);
+        }
+
+        .btn-delete {
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0.2rem 0.4rem;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+            gap: 6px;
+            margin-top: 1rem;
+        }
+
+        .part-box {
+            aspect-ratio: 1;
+            background-color: var(--box-bg);
+            color: var(--text-main);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            border: 1px solid var(--border-color);
+            transition: all 0.15s ease;
+            padding: 2px;
+        }
+
+        .part-num {
+            font-size: 0.85rem;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .part-date {
+            font-size: 0.62rem;
+            line-height: 1;
+            margin-top: 2px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .part-box:hover {
+            border-color: var(--subject-color, var(--primary));
+            color: var(--subject-color, var(--primary));
+        }
+
+        .part-box.active {
+            background-color: var(--subject-color, var(--primary));
+            color: #ffffff;
+            border-color: var(--subject-color, var(--primary));
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        .form-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--text-main);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1.5fr 0.8fr 1.2fr auto;
+            gap: 0.75rem;
+            align-items: flex-end;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .input-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-sub);
+        }
+
+        .input-group input {
+            padding: 0.65rem 0.85rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-main);
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .btn-add {
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+            padding: 0.65rem 1.2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            height: 42px;
+            white-space: nowrap;
+        }
+
+        .calendar-section {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            margin-top: 1.5rem;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .calendar-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .btn-nav {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .cal-day-label {
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.3rem 0;
+            color: var(--text-sub);
+        }
+
+        .cal-day-cell {
+            min-height: 85px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .cal-day-cell.other-month {
+            opacity: 0.3;
+        }
+
+        .cal-day-num {
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .cal-day-cell.today .cal-day-num {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .cal-bar {
+            font-size: 0.65rem;
+            padding: 2px 4px;
+            border-radius: 4px;
+            color: #ffffff;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+        }
+
+        .cal-note {
+            font-size: 0.65rem;
+            background: var(--box-bg);
+            color: var(--text-main);
+            padding: 2px 4px;
+            border-radius: 4px;
+            border-left: 3px solid var(--primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* 수정 모달 스타일 */
+        .modal-backdrop {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .modal-backdrop.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-top: 1.2rem;
+        }
+
+        .btn-cancel {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .btn-save {
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2.5rem;
+            color: var(--text-sub);
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px dashed var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="title-area">
+                <h1>📚 스마트 공부 달성률 트래커</h1>
+                <p>숫자 칸을 클릭하면 달성 일자와 함께 색상이 채워집니다</p>
+            </div>
+            <button class="theme-toggle" id="themeToggleBtn">🌙 다크 모드</button>
+        </header>
+
+        <div class="dashboard-grid">
+            <section class="dashboard-card">
+                <div class="dashboard-header">
+                    <span class="dashboard-title">전체 공부 달성률</span>
+                    <span class="dashboard-percentage" id="totalPercent">0%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="totalProgressBar"></div>
+                </div>
+                <div class="dashboard-stats">
+                    <span>과목: <strong id="subjectCount">0</strong>개</span>
+                    <span>완료: <strong id="completedPartsCount">0</strong> / <strong id="totalPartsCount">0</strong></span>
+                </div>
+            </section>
+
+            <section class="monthly-plan-card">
+                <div class="monthly-plan-header">
+                    <span class="monthly-plan-title">🗓️ 이번 달 목표 & 계획</span>
+                    <span class="monthly-plan-save-tag" id="saveNotice">✓ 자동 저장됨</span>
+                </div>
+                <textarea 
+                    class="monthly-plan-textarea" 
+                    id="monthlyPlanInput" 
+                    placeholder="이번 달 주요 수험 목표나 공부 계획을 자유롭게 기록하세요 (예: 한국사 기출 1회독 완강, 행정법 판례 정리 등)"
+                ></textarea>
+            </section>
+        </div>
+
+        <!-- Subject List -->
+        <main class="subject-list" id="subjectList"></main>
+
+        <!-- Form Card at Bottom -->
+        <section class="form-card">
+            <div class="form-title">➕ 새로운 과목 추가</div>
+            <form id="addSubjectForm" class="form-grid">
+                <div class="input-group">
+                    <label for="subjectName">과목명</label>
+                    <input type="text" id="subjectName" placeholder="예: 한국사" required>
+                </div>
+                <div class="input-group">
+                    <label for="subjectDesc">설명 (선택)</label>
+                    <input type="text" id="subjectDesc" placeholder="예: 단권화 교재 기준">
+                </div>
+                <div class="input-group">
+                    <label for="totalParts">총 파트 수</label>
+                    <input type="number" id="totalParts" min="1" max="100" placeholder="20" required>
+                </div>
+                <div class="input-group">
+                    <label for="targetDate">목표일 (선택)</label>
+                    <input type="date" id="targetDate">
+                </div>
+                <button type="submit" class="btn-add">+ 과목 추가</button>
+            </form>
+        </section>
+
+        <!-- 하단 달력 섹션 -->
+        <section class="calendar-section">
+            <div class="calendar-header">
+                <div class="calendar-title" id="calendarTitle">📅 달력</div>
+                <div class="calendar-nav">
+                    <button class="btn-nav" onclick="changeMonth(-1)">◀</button>
+                    <button class="btn-nav" onclick="changeMonth(1)">▶</button>
+                </div>
+            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+        </section>
+    </div>
+
+    <!-- 수정 모달 -->
+    <div class="modal-backdrop" id="editModal">
+        <div class="modal-card">
+            <div class="modal-title">✏️ 과목 정보 수정</div>
+            <div class="modal-body">
+                <input type="hidden" id="editSubjectId">
+                <div class="input-group">
+                    <label for="editSubjectName">과목명</label>
+                    <input type="text" id="editSubjectName" required>
+                </div>
+                <div class="input-group">
+                    <label for="editSubjectDesc">설명</label>
+                    <input type="text" id="editSubjectDesc">
+                </div>
+                <div class="input-group">
+                    <label for="editSubjectRound">현재 회독 수</label>
+                    <input type="number" id="editSubjectRound" min="1" value="1">
+                </div>
+                <div class="input-group">
+                    <label for="editTotalParts">총 파트 수</label>
+                    <input type="number" id="editTotalParts" min="1" max="100">
+                </div>
+                <div class="input-group">
+                    <label for="editTargetDate">목표일</label>
+                    <input type="date" id="editTargetDate">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeEditModal()">취소</button>
+                <button class="btn-save" onclick="saveSubjectEdits()">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const colorPalette = [
+            '#6366f1', '#06b6d4', '#ec4899', '#f59e0b', 
+            '#8b5cf6', '#10b981', '#3b82f6', '#f97316'
+        ];
+
+        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+
+        const defaultSubjects = [
+            { id: '1', name: '한국사 기출 회독', description: '단권화 교재', round: 1, totalParts: 20, completedMap: {}, targetDate: '' },
+            { id: '2', name: '행정법총론 기본서', description: '판례 위주', round: 1, totalParts: 15, completedMap: {}, targetDate: '' }
+        ];
+
+        function loadStoredSubjects() {
+            const keys = ['study_tracker_subjects_v11', 'study_tracker_subjects_v10', 'study_tracker_subjects'];
+            for (let key of keys) {
+                const stored = localStorage.getItem(key);
+                if (stored) {
+                    try {
+                        let parsed = JSON.parse(stored);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            return parsed.map(s => {
+                                if (!s.completedMap || typeof s.completedMap !== 'object') s.completedMap = {};
+                                if (!s.round) s.round = 1;
+                                if (!s.description) s.description = '';
+                                return s;
+                            });
+                        }
+                    } catch (e) {
+                        console.error('Data parsing error:', e);
+                    }
+                }
+            }
+            return defaultSubjects;
+        }
+
+        let subjects = loadStoredSubjects();
+        let calendarNotes = JSON.parse(localStorage.getItem('study_tracker_cal_notes') || '{}');
+        let currentCalDate = new Date();
+
+        function forceSyncToStorage() {
+            localStorage.setItem('study_tracker_subjects_v11', JSON.stringify(subjects));
+            localStorage.setItem('study_tracker_subjects', JSON.stringify(subjects));
+            localStorage.setItem('study_tracker_cal_notes', JSON.stringify(calendarNotes));
+            localStorage.setItem('study_tracker_monthly_plan', monthlyPlanInput.value);
+        }
+
+        window.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') forceSyncToStorage();
+        });
+        window.addEventListener('pagehide', forceSyncToStorage);
+
+        const themeBtn = document.getElementById('themeToggleBtn');
+        let isDarkMode = localStorage.getItem('study_tracker_theme') === 'dark';
+
+        function applyTheme() {
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+                themeBtn.textContent = '☀️ 라이트 모드';
+            } else {
+                document.body.classList.remove('dark-mode');
+                themeBtn.textContent = '🌙 다크 모드';
+            }
+        }
+        
+        themeBtn.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            localStorage.setItem('study_tracker_theme', isDarkMode ? 'dark' : 'light');
+            applyTheme();
+        });
+
+        function triggerConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+        }
+
+        const monthlyPlanInput = document.getElementById('monthlyPlanInput');
+        const saveNotice = document.getElementById('saveNotice');
+        let saveTimeout = null;
+
+        monthlyPlanInput.value = localStorage.getItem('study_tracker_monthly_plan') || '';
+
+        monthlyPlanInput.addEventListener('input', () => {
+            clearTimeout(saveTimeout);
+            localStorage.setItem('study_tracker_monthly_plan', monthlyPlanInput.value);
+            saveNotice.classList.add('visible');
+            saveTimeout = setTimeout(() => {
+                saveNotice.classList.remove('visible');
+            }, 1500);
+        });
+
+        function formatDateWithDay(dateStr) {
+            if (!dateStr) return '';
+            const dateParts = dateStr.split('-');
+            if (dateParts.length !== 3) return dateStr;
+            const year = dateParts[0];
+            const month = parseInt(dateParts[1], 10);
+            const day = parseInt(dateParts[2], 10);
+            const dateObj = new Date(year, month - 1, day);
+            const dayOfWeek = dayNames[dateObj.getDay()];
+            return `${year}.${month}.${day}(${dayOfWeek})`;
+        }
+
+        function getDDayString(targetDateStr) {
+            if (!targetDateStr) return '';
+            const target = new Date(targetDateStr);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            target.setHours(0, 0, 0, 0);
+
+            const diffTime = target - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays > 0) return `D-${diffDays}`;
+            if (diffDays === 0) return `D-Day!`;
+            return `D+${Math.abs(diffDays)}`;
+        }
+
+        function saveData() {
+            forceSyncToStorage();
+            render();
+            renderCalendar();
+        }
+
+        document.getElementById('addSubjectForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nameInput = document.getElementById('subjectName');
+            const descInput = document.getElementById('subjectDesc');
+            const partsInput = document.getElementById('totalParts');
+            const dateInput = document.getElementById('targetDate');
+
+            const newSubject = {
+                id: Date.now().toString(),
+                name: nameInput.value.trim(),
+                description: descInput.value.trim(),
+                round: 1,
+                totalParts: parseInt(partsInput.value, 10),
+                completedMap: {},
+                targetDate: dateInput.value
+            };
+
+            subjects.push(newSubject);
+            saveData();
+
+            nameInput.value = '';
+            descInput.value = '';
+            partsInput.value = '';
+            dateInput.value = '';
+        });
+
+        function deleteSubject(id) {
+            if (confirm('이 과목을 삭제하시겠습니까?')) {
+                subjects = subjects.filter(s => s.id !== id);
+                saveData();
+            }
+        }
+
+        function moveSubject(index, direction) {
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= subjects.length) return;
+            const temp = subjects[index];
+            subjects[index] = subjects[targetIndex];
+            subjects[targetIndex] = temp;
+            saveData();
+        }
+
+        function openEditModal(id) {
+            const subject = subjects.find(s => s.id === id);
+            if (!subject) return;
+
+            document.getElementById('editSubjectId').value = subject.id;
+            document.getElementById('editSubjectName').value = subject.name;
+            document.getElementById('editSubjectDesc').value = subject.description || '';
+            document.getElementById('editSubjectRound').value = subject.round || 1;
+            document.getElementById('editTotalParts').value = subject.totalParts;
+            document.getElementById('editTargetDate').value = subject.targetDate || '';
+
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+        }
+
+        function saveSubjectEdits() {
+            const id = document.getElementById('editSubjectId').value;
+            const subject = subjects.find(s => s.id === id);
+            if (!subject) return;
+
+            const name = document.getElementById('editSubjectName').value.trim();
+            if (!name) {
+                alert('과목명은 필수입니다.');
+                return;
+            }
+
+            const totalParts = parseInt(document.getElementById('editTotalParts').value, 10);
+            if (isNaN(totalParts) || totalParts < 1) {
+                alert('총 파트 수는 1 이상이어야 합니다.');
+                return;
+            }
+
+            subject.name = name;
+            subject.description = document.getElementById('editSubjectDesc').value.trim();
+            subject.round = parseInt(document.getElementById('editSubjectRound').value, 10) || 1;
+            subject.totalParts = totalParts;
+            subject.targetDate = document.getElementById('editTargetDate').value;
+
+            Object.keys(subject.completedMap).forEach(key => {
+                if (parseInt(key, 10) > totalParts) {
+                    delete subject.completedMap[key];
+                }
+            });
+
+            closeEditModal();
+            saveData();
+        }
+
+        function changeRound(id, delta) {
+            const subject = subjects.find(s => s.id === id);
+            if (!subject) return;
+            
+            const newRound = (subject.round || 1) + delta;
+            if (newRound < 1) return;
+            
+            subject.round = newRound;
+            saveData();
+        }
+
+        function togglePart(subjectId, partNum) {
+            const subject = subjects.find(s => s.id === subjectId);
+            if (!subject) return;
+
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            if (subject.completedMap[partNum]) {
+                delete subject.completedMap[partNum];
+            } else {
+                subject.completedMap[partNum] = todayStr;
+                
+                const completedCount = Object.keys(subject.completedMap).length;
+                if (completedCount === subject.totalParts) {
+                    triggerConfetti();
+                }
+            }
+
+            saveData();
+        }
+
+        function render() {
+            const subjectList = document.getElementById('subjectList');
+            subjectList.innerHTML = '';
+
+            let grandTotalParts = 0;
+            let grandCompletedParts = 0;
+
+            if (subjects.length === 0) {
+                subjectList.innerHTML = `<div class="empty-state">등록된 과목이 없습니다. 하단에서 새 과목을 추가해 보세요!</div>`;
+            }
+
+            subjects.forEach((subject, index) => {
+                const color = colorPalette[index % colorPalette.length];
+                const completedCount = Object.keys(subject.completedMap).length;
+                const totalParts = subject.totalParts;
+                const percent = Math.round((completedCount / totalParts) * 100) || 0;
+                const isComplete = completedCount === totalParts && totalParts > 0;
+
+                grandTotalParts += totalParts;
+                grandCompletedParts += completedCount;
+
+                const card = document.createElement('div');
+                card.className = `subject-card ${isComplete ? 'complete' : ''}`;
+                card.style.setProperty('--subject-color', color);
+
+                const remainingParts = totalParts - completedCount;
+                const dDayStr = getDDayString(subject.targetDate);
+
+                let partsGridHTML = '';
+                for (let i = 1; i <= totalParts; i++) {
+                    const dateVal = subject.completedMap[i];
+                    const isActive = !!dateVal;
+                    let shortDate = '';
+                    if (dateVal) {
+                        const dateParts = dateVal.split('-');
+                        if (dateParts.length === 3) {
+                            shortDate = `${parseInt(dateParts[1], 10)}/${parseInt(dateParts[2], 10)}`;
+                        }
+                    }
+
+                    partsGridHTML += `
+                        <div class="part-box ${isActive ? 'active' : ''}" onclick="togglePart('${subject.id}', ${i})">
+                            <span class="part-num">${i}</span>
+                            ${isActive ? `<span class="part-date">${shortDate}</span>` : ''}
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="subject-header">
+                        <div class="subject-info">
+                            <div class="subject-title-row">
+                                <h3>${subject.name}</h3>
+                                ${subject.description ? `<span class="subject-desc">${subject.description}</span>` : ''}
+                                <span class="round-control">
+                                    <button class="btn-round" onclick="changeRound('${subject.id}', -1)">-</button>
+                                    ${subject.round || 1}회독
+                                    <button class="btn-round" onclick="changeRound('${subject.id}', 1)">+</button>
+                                </span>
+                                ${isComplete ? `<span class="complete-badge">✓ 완료</span>` : ''}
+                                <button class="btn-edit-all" onclick="openEditModal('${subject.id}')">수정</button>
+                            </div>
+                            <div class="subject-meta">
+                                <span>진행: ${completedCount}/${totalParts} 파트</span>
+                                <span class="remaining-text">
+                                    ${isComplete ? '완료됨' : `남은 파트: ${remainingParts}개`}
+                                </span>
+                                ${subject.targetDate ? `<span class="d-day-tag">${dDayStr} (${formatDateWithDay(subject.targetDate)})</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="subject-actions">
+                            <div class="btn-order-group">
+                                <button class="btn-order" onclick="moveSubject(${index}, -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
+                                <button class="btn-order" onclick="moveSubject(${index}, 1)" ${index === subjects.length - 1 ? 'disabled' : ''}>▼</button>
+                            </div>
+                            <span class="subject-percentage ${isComplete ? 'complete' : ''}">${percent}%</span>
+                            <button class="btn-delete" onclick="deleteSubject('${subject.id}')">✕</button>
+                        </div>
+                    </div>
+                    <div class="grid-container">
+                        ${partsGridHTML}
+                    </div>
+                `;
+
+                subjectList.appendChild(card);
+            });
+
+            const grandPercent = grandTotalParts > 0 ? Math.round((grandCompletedParts / grandTotalParts) * 100) : 0;
+            document.getElementById('totalPercent').textContent = `${grandPercent}%`;
+            document.getElementById('totalProgressBar').style.width = `${grandPercent}%`;
+            document.getElementById('subjectCount').textContent = subjects.length;
+            document.getElementById('completedPartsCount').textContent = grandCompletedParts;
+            document.getElementById('totalPartsCount').textContent = grandTotalParts;
+        }
+
+        function changeMonth(delta) {
+            currentCalDate.setMonth(currentCalDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        function promptAddNote(dateKey) {
+            const currentNote = calendarNotes[dateKey] || '';
+            const newNote = prompt(`${dateKey} 메모/공부 요약 입력:`, currentNote);
+            if (newNote !== null) {
+                if (newNote.trim() === '') {
+                    delete calendarNotes[dateKey];
+                } else {
+                    calendarNotes[dateKey] = newNote.trim();
+                }
+                saveData();
+            }
+        }
+
+        function renderCalendar() {
+            const year = currentCalDate.getFullYear();
+            const month = currentCalDate.getMonth();
+
+            document.getElementById('calendarTitle').textContent = `📅 ${year}년 ${month + 1}월`;
+
+            const calendarGrid = document.getElementById('calendarGrid');
+            calendarGrid.innerHTML = '';
+
+            dayNames.forEach(day => {
+                const dayLabel = document.createElement('div');
+                dayLabel.className = 'cal-day-label';
+                dayLabel.textContent = day;
+                calendarGrid.appendChild(dayLabel);
+            });
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+
+            const startDayOfWeek = firstDay.getDay();
+            const totalDays = lastDay.getDate();
+
+            const prevLastDay = new Date(year, month, 0).getDate();
+
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+            for (let i = startDayOfWeek - 1; i >= 0; i--) {
+                const cell = document.createElement('div');
+                cell.className = 'cal-day-cell other-month';
+                cell.innerHTML = `<span class="cal-day-num">${prevLastDay - i}</span>`;
+                calendarGrid.appendChild(cell);
+            }
+
+            for (let day = 1; day <= totalDays; day++) {
+                const monthStr = String(month + 1).padStart(2, '0');
+                const dayStr = String(day).padStart(2, '0');
+                const dateKey = `${year}-${monthStr}-${dayStr}`;
+
+                const cell = document.createElement('div');
+                cell.className = `cal-day-cell ${dateKey === todayStr ? 'today' : ''}`;
+                cell.onclick = () => promptAddNote(dateKey);
+
+                let cellHTML = `<span class="cal-day-num">${day}</span>`;
+
+                subjects.forEach((subject, idx) => {
+                    const color = colorPalette[idx % colorPalette.length];
+                    const completedParts = Object.entries(subject.completedMap)
+                        .filter(([_, date]) => date === dateKey)
+                        .map(([part, _]) => part);
+
+                    if (completedParts.length > 0) {
+                        cellHTML += `<div class="cal-bar" style="background-color: ${color}">${subject.name} #${completedParts.join(',')}</div>`;
+                    }
+                });
+
+                if (calendarNotes[dateKey]) {
+                    cellHTML += `<div class="cal-note">${calendarNotes[dateKey]}</div>`;
+                }
+
+                cell.innerHTML = cellHTML;
+                calendarGrid.appendChild(cell);
+            }
+
+            const totalCellsSoFar = startDayOfWeek + totalDays;
+            const remainingCells = (7 - (totalCellsSoFar % 7)) % 7;
+            for (let i = 1; i <= remainingCells; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cal-day-cell other-month';
+                cell.innerHTML = `<span class="cal-day-num">${i}</span>`;
+                calendarGrid.appendChild(cell);
+            }
+        }
+
+        applyTheme();
+        render();
+        renderCalendar();
+    </script>
+</body>
+</html>
